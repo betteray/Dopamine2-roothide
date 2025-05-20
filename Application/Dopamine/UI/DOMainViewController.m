@@ -21,6 +21,8 @@
 @property DOJailbreakButton *jailbreakBtn;
 @property NSArray<NSLayoutConstraint *> *jailbreakButtonConstraints;
 @property DOActionMenuButton *updateButton;
+@property DOHeaderView *headerView;
+@property DOActionMenuView *actionView;
 @property(nonatomic) BOOL hideStatusBar;
 @property(nonatomic) BOOL hideHomeIndicator;
 
@@ -73,20 +75,20 @@
     }
 
     //Header
-    DOHeaderView *headerView = [[DOHeaderView alloc] initWithImage: [UIImage imageNamed:@"Dopamine"] subtitles: @[
+    self.headerView = [[DOHeaderView alloc] initWithImage: [UIImage imageNamed:@"Dopamine"] subtitles: @[
         [DOGlobalAppearance mainSubtitleString:[[DOEnvironmentManager sharedManager] versionSupportString]],
         [DOGlobalAppearance secondarySubtitleString:DOLocalizedString(@"Credits_Made_By")],
     ]];
     
-    [stackView addArrangedSubview:headerView];
+    [stackView addArrangedSubview:self.headerView];
 
     [NSLayoutConstraint activateConstraints:@[
-        [headerView.leadingAnchor constraintEqualToAnchor:stackView.leadingAnchor constant:5],
-        [headerView.trailingAnchor constraintEqualToAnchor:stackView.trailingAnchor]
+        [self.headerView.leadingAnchor constraintEqualToAnchor:stackView.leadingAnchor constant:5],
+        [self.headerView.trailingAnchor constraintEqualToAnchor:stackView.trailingAnchor]
     ]];
     
     //Action Menu
-    DOActionMenuView *actionView = [[DOActionMenuView alloc] initWithActions:@[
+    self.actionView = [[DOActionMenuView alloc] initWithActions:@[
         [UIAction actionWithTitle:DOLocalizedString(@"Menu_Settings_Title") image:[UIImage systemImageNamed:@"gearshape" withConfiguration:[DOGlobalAppearance smallIconImageConfiguration]] identifier:@"settings" handler:^(__kindof UIAction * _Nonnull action) {
             [self.navigationController pushViewController:[[DOSettingsController alloc] init] animated:YES];
         }],
@@ -105,11 +107,11 @@
         }]
     ] delegate:self];
     
-    [stackView addArrangedSubview: actionView];
+    [stackView addArrangedSubview: self.actionView];
 
     [NSLayoutConstraint activateConstraints:@[
-        [actionView.leadingAnchor constraintEqualToAnchor:stackView.leadingAnchor],
-        [actionView.trailingAnchor constraintEqualToAnchor:stackView.trailingAnchor],
+        [self.actionView.leadingAnchor constraintEqualToAnchor:stackView.leadingAnchor],
+        [self.actionView.trailingAnchor constraintEqualToAnchor:stackView.trailingAnchor],
     ]];
     
     
@@ -157,14 +159,14 @@
 /********************************** roothide specific ************************************/
 
 
-        [actionView hide];
-        [self.jailbreakBtn expandButton: self.jailbreakButtonConstraints];
-
-        self.updateButton.userInteractionEnabled = NO;
-        [UIView animateWithDuration:0.75 delay:0 usingSpringWithDamping:0.9 initialSpringVelocity:2.0  options: UIViewAnimationOptionCurveEaseInOut animations:^{
-            [headerView setTransform:CGAffineTransformMakeTranslation(0, -25)];
-            self.updateButton.alpha = 0;
-        } completion:nil];
+//        [self.actionView hide];
+//        [self.jailbreakBtn expandButton: self.jailbreakButtonConstraints];
+//
+//        self.updateButton.userInteractionEnabled = NO;
+//        [UIView animateWithDuration:0.75 delay:0 usingSpringWithDamping:0.9 initialSpringVelocity:2.0  options: UIViewAnimationOptionCurveEaseInOut animations:^{
+//            [self.headerView setTransform:CGAffineTransformMakeTranslation(0, -25)];
+//            self.updateButton.alpha = 0;
+//        } completion:nil];
         
         [self startJailbreak];
         
@@ -221,6 +223,19 @@
 
 - (void)startJailbreak
 {
+    if ([[DOEnvironmentManager sharedManager] isJailbroken]) {
+        return;
+    }
+
+    [self.actionView hide];
+    [self.jailbreakBtn expandButton: self.jailbreakButtonConstraints];
+
+    self.updateButton.userInteractionEnabled = NO;
+    [UIView animateWithDuration:0.75 delay:0 usingSpringWithDamping:0.9 initialSpringVelocity:2.0  options: UIViewAnimationOptionCurveEaseInOut animations:^{
+        [self.headerView setTransform:CGAffineTransformMakeTranslation(0, -25)];
+        self.updateButton.alpha = 0;
+    } completion:nil];
+    
     DOJailbreaker *jailbreaker = [[DOJailbreaker alloc] init];
 
     [[DOUIManager sharedInstance] startLogCapture];

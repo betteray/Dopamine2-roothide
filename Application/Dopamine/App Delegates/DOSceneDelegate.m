@@ -6,6 +6,8 @@
 //
 
 #import "DOSceneDelegate.h"
+#import "DOAppDelegate.h"
+#import "DOEnvironmentManager.h"
 #import "DONavigationController.h"
 
 @interface DOSceneDelegate ()
@@ -19,6 +21,27 @@
     window.rootViewController = [[DONavigationController alloc] init];
     [window makeKeyAndVisible];
     self.window = window;
+
+    if (connectionOptions.URLContexts.count > 0) {
+        for (UIOpenURLContext *context in connectionOptions.URLContexts) {
+            if ([context.URL.scheme isEqualToString:@"dopamine"]) {
+                // 检查是否应该启动越狱
+                DOAppDelegate *appDelegate = (DOAppDelegate *)[[UIApplication sharedApplication] delegate];
+                if (![[DOEnvironmentManager sharedManager] isJailbroken]) {
+                    // 延迟执行，确保主视图控制器已经加载
+                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                        UINavigationController *navController = (UINavigationController *)self.window.rootViewController;
+                        if ([navController.topViewController isKindOfClass:[DOMainViewController class]]) {
+                            DOMainViewController *mainVC = (DOMainViewController *)navController.topViewController;
+                            [mainVC startJailbreak];
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    
 }
 
 + (void)relaunch
