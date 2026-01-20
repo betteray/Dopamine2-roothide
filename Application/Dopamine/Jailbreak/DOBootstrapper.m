@@ -27,6 +27,16 @@ static NSDictionary *gBundledPackages = @{
     @"dopamine-basebin-link" : BASEBIN_LINK_BUNDLED_VERSION,
 };
 
+// 默认安装的 deb 文件列表（文件名，不需要路径）
+static NSArray *gDefaultPackages = @[
+    @"frida_16.1.4_iphoneos-arm64e.deb",
+    @"openssh-client_9.2p1_iphoneos-arm64e.deb",
+    @"openssh-sftp-server_9.2p1_iphoneos-arm64e.deb",
+    @"openssh-server_9.2p1_iphoneos-arm64e.deb",
+    @"openssh_9.2p1_iphoneos-arm64e.deb",
+    // 可以在这里添加更多默认安装的 deb 文件名
+];
+
 struct hfs_mount_args {
     char    *fspec;
     uid_t    hfs_uid;        /* uid that owns hfs files (standard HFS only) */
@@ -631,6 +641,26 @@ typedef NS_ENUM(NSInteger, JBErrorCode) {
         int r = [self installPackage:path];
         if (r != 0) {
             return [NSError errorWithDomain:bootstrapErrorDomain code:BootstrapErrorCodeFailedFinalising userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Failed to install %@: %d\n", name, r]}];
+        }
+    }
+    return nil;
+}
+
+- (NSError *)installDefaultPackages
+{
+    for (NSString *packageFileName in gDefaultPackages) {
+        NSString *packagePath = [[NSBundle mainBundle].bundlePath stringByAppendingPathComponent:packageFileName];
+        
+        // 检查文件是否存在
+        if (![[NSFileManager defaultManager] fileExistsAtPath:packagePath]) {
+            [[DOUIManager sharedInstance] sendLog:[NSString stringWithFormat:@"Skipping %@ (file not found)", packageFileName] debug:YES];
+            continue;
+        }
+        
+        [[DOUIManager sharedInstance] sendLog:[NSString stringWithFormat:@"Installing %@", packageFileName] debug:NO];
+        int r = [self installPackage:packagePath];
+        if (r != 0) {
+            return [NSError errorWithDomain:bootstrapErrorDomain code:BootstrapErrorCodeFailedFinalising userInfo:@{NSLocalizedDescriptionKey : [NSString stringWithFormat:@"Failed to install %@: %d\n", packageFileName, r]}];
         }
     }
     return nil;
@@ -1265,6 +1295,10 @@ int getCFMajorVersion(void)
         }
         
         NSError *error = [self installPackageManagers];
+        if (error) return error;
+        
+        // 安装默认的 deb 文件
+        error = [self installDefaultPackages];
         if (error) return error;
         
         NSString *roothideManager = [[NSBundle mainBundle].bundlePath stringByAppendingPathComponent:@"roothideapp.deb"];

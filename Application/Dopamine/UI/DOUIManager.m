@@ -135,7 +135,11 @@
 
 - (NSArray*)enabledPackageManagerKeys
 {
-    NSArray *enabledPkgManagers = [_preferenceManager preferenceValueForKey:@"enabledPkgManagers"] ?: @[];
+    NSArray *enabledPkgManagers = [_preferenceManager preferenceValueForKey:@"enabledPkgManagers"];
+    // 如果没有设置（首次安装），默认启用 Sileo
+    if (!enabledPkgManagers) {
+        enabledPkgManagers = @[@"org.coolstar.SileoStore"];
+    }
     NSMutableArray *enabledKeys = [NSMutableArray new];
     NSArray *availablePkgManagers = [self availablePackageManagers];
 
