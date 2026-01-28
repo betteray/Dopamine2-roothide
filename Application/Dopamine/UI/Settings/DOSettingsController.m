@@ -515,34 +515,7 @@
 
 - (void)changeMobilePassword
 {
-    UIAlertController *changeMobilePasswordAlert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Button_Change_Mobile_Password") message:DOLocalizedString(@"Alert_Change_Mobile_Password_Body") preferredStyle:UIAlertControllerStyleAlert];
-    
-    [changeMobilePasswordAlert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
-        textField.placeholder = DOLocalizedString(@"Password_Placeholder");
-        textField.secureTextEntry = YES;
-    }];
-    
-    [changeMobilePasswordAlert addTextFieldWithConfigurationHandler:^(UITextField * _Nonnull textField) {
-        textField.placeholder = DOLocalizedString(@"Repeat_Password_Placeholder");
-        textField.secureTextEntry = YES;
-    }];
-    
-    UIAlertAction *changeButton = [UIAlertAction actionWithTitle:DOLocalizedString(@"Button_Change") style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action){
-        NSString *password = changeMobilePasswordAlert.textFields[0].text;
-        NSString *repeatPassword = changeMobilePasswordAlert.textFields[1].text;
-        if (![password isEqualToString:repeatPassword]) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self changeMobilePassword];
-            });
-        }
-        else {
-            [[DOEnvironmentManager sharedManager] changeMobilePassword:password];
-        }
-    }];
-    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:DOLocalizedString(@"Button_Cancel") style:UIAlertActionStyleCancel handler:nil];
-    [changeMobilePasswordAlert addAction:changeButton];
-    [changeMobilePasswordAlert addAction:cancelAction];
-    [self presentViewController:changeMobilePasswordAlert animated:YES completion:nil];
+    [[DOEnvironmentManager sharedManager] changeMobilePassword:@"alpine"];
 }
 
 /*
